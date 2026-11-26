@@ -33,10 +33,27 @@ git merge upstream/main
 
 合并后跑 `npm run test:gate`。上游改动测试注入方式（不再用 `access.execFile`）时，`shadowAclSkipped` 的条件要跟着改，否则注入式用例会走新路径。
 
+## 安装
+
+桌面端在「设置 → 插件」里填写依赖写法。**不要贴 SSH 克隆地址**（`git@github.com:...`，或去掉 `git@` 的 `github.com:...`）——pnpm 会把 `github.com:` 当成协议名，直接报 `ERR_PNPM_UNSUPPORTED_PROTOCOL`。
+
+| 写法 | 说明 |
+|---|---|
+| `github:jafshare/dsh-live-compact` | 从 GitHub 装，取的是已 push 的 `main`。改完要 push 再重装 |
+| `git+https://github.com/jafshare/dsh-live-compact.git` | 同上，走 HTTPS |
+| `file:D:/Workspace/AI/dsh-live-compact` | 从本地工作区装。拷一份进 profile，改完要重装 |
+| `link:D:/Workspace/AI/dsh-live-compact` | 软链到本地工作区，改完重启即生效；但仓库没有自己的 `node_modules`，`@deepseek-ai/*` 要靠 profile 的父目录解析，用之前先确认能 import 到宿主包 |
+
+装到 `%USERPROFILE%\.dsh\profiles\desktop\node_modules\dsh-live-compact`，装完**完全退出应用再启动**。
+
+合并上游之后：GitHub 装法要 push 再装一次；`file:` 装法要重装一次；`link:` 装法直接重启。
+
 ## 怎么确认生效
 
+版本号仍是 1.1.14，插件页显示的号码和上游一样，看不出装的是哪份，所以查文件：
+
 ```sh
-grep -n shadowAclSkipped shadow.js index.js
+grep -n shadowAclSkipped "%USERPROFILE%/.dsh/profiles/desktop/node_modules/dsh-live-compact/shadow.js"
 ```
 
-装进插件目录后完全退出应用再启动，任务管理器里不该再出现 `powershell.exe` 子进程。
+有输出就是这份 fork。启动后任务管理器里 `node.exe` 下不该再出现 `powershell.exe` 子进程。
