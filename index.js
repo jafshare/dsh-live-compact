@@ -40,6 +40,7 @@ import {
   sessionDir,
   shadowAccessFused,
   shadowAccessFuseBuffer,
+  shadowAclSkipped,
   tightenCreatedShadow,
   tightenShadow,
 } from "./shadow.js";
@@ -3092,7 +3093,7 @@ export default class SpineCompactionEngine extends BasicCompactionEngine {
         const record = readRawToolResult({ dir, toolCallId: id, access, tighten: false });
         const retryable = recoveryRetryable(record, dir, id);
         const cached = record?.ok
-          ? { ...record, recovered: true, aclVerified: false }
+          ? { ...record, recovered: true, aclVerified: shadowAclSkipped(access) }
           : { ...record, ...(retryable ? { retryable: true } : {}), recovered: true, aclVerified: false };
         this.rawSeen.set(mapKey, cached);
         if (!cached.ok) {
@@ -3138,7 +3139,7 @@ export default class SpineCompactionEngine extends BasicCompactionEngine {
         const record = readRawToolResult({ dir, toolCallId: id, access, tighten: false });
         const retryable = recoveryRetryable(record, dir, id);
         const cached = record?.ok
-          ? { ...record, recovered: true, aclVerified: false }
+          ? { ...record, recovered: true, aclVerified: shadowAclSkipped(access) }
           : { ...record, ...(retryable ? { retryable: true } : {}), recovered: true, aclVerified: false };
         this.rawSeen.set(mapKey, cached);
         if (!cached.ok) {

@@ -601,6 +601,13 @@ export function shadowAccessFused() {
   return Atomics.load(shadowFuseState, 0) !== 0;
 }
 
+// fork：真实 Windows 上不改写备份 ACL，信任系统目录权限；见 FORK.md。
+// 注入 runner/execFile 的调用仍是老路径，POSIX 不受影响。
+export function shadowAclSkipped(access = {}) {
+  const platform = access.platform ?? process.platform;
+  return process.platform === "win32" && platform === "win32" && !access.runner && !access.execFile;
+}
+
 export function shadowAccessFuseBuffer() {
   return shadowFuseState.buffer;
 }
@@ -1307,6 +1314,8 @@ export function tightenShadow(path, kind = "dir", access = {}) {
     error.code = "ESHADOWACCESS";
     throw error;
   }
+
+  if (shadowAclSkipped(access)) return;
 
   const runner = access.runner ?? ((action) => defaultShadowAccessRunner({
     ...action,
